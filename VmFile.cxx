@@ -15,6 +15,7 @@ VmFile::VmFile()
     y = 1;
     z = 1;
     t = -1;
+    fac_t = -1;
     nodect = 0;
     tzero = 0;
     voltagescale = 1;
@@ -65,6 +66,8 @@ void VmFile::open(char* filename, int tnum)
 		z = atoi(strtok(NULL, separators));
 	    if(!strcmp(token,"t"))
 		t = atoi(strtok(NULL, separators));
+            if(!strcmp(token,"fac_t"))
+                fac_t = atof(strtok(NULL, separators));
 	    if(!strcmp(token,"type")){
 		dattype = strtok(NULL, separators);
 		if(!strcmp(dattype,"float")){
@@ -101,8 +104,8 @@ void VmFile::open(char* filename, int tnum)
 	}
  
 	// Sanity checks
-	if(t == -1 || dattype == NULL || endianness == NULL || datsize == -1 || tzero == -1 || (x == 1 && y == 1 && t == 1)){
-	    all_abort("IGB header was missing one of x, y, z, t, type, systeme (endianness), dattype, or zero.");
+	if(t == -1 || fac_t == -1 || dattype == NULL || endianness == NULL || datsize == -1 || tzero == -1 || (x == 1 && y == 1 && t == 1)){
+	    all_abort("IGB header was missing one of x, y, z, t, fac_t, type, systeme (endianness), dattype, or zero.");
 	}
 
 	if(x*y*z > x && x*y*z > y && x*y*z > z){
@@ -134,6 +137,7 @@ void VmFile::open(char* filename, int tnum)
 //	cerr << "Nodect = " << x << endl;
 	y = 1;
 	z = 1;
+        fac_t = 1;
 	voltagescale = 1;
 	tfile_currtime = tnum;
     }
@@ -159,12 +163,12 @@ void VmFile::get_steps(int start, int end, float* tdata, float* vdata)
     float buffer;
     int range;
 
-    range = end-start+1;
-
+    range = (end-start)/fac_t+1;
+    
     if(mode == 0){
 	// read from IGB file
         for (int line = 0 ; line < range; line++) {
-	    set_time(start+line);
+	    set_time(start/fac_t+line);
             readitems = fread(&linebuffer[0], (sizeof(float)/sizeof(char)), my_block, igbfile);
 
 	    if(readitems != my_block){
@@ -182,10 +186,10 @@ void VmFile::get_steps(int start, int end, float* tdata, float* vdata)
 	    }
 
         }
-	set_time(end+1);
+	set_time(end/fac_t+1);
 
         for(int time = 0; time < range; time++){
-            tdata[time] = tzero + start*0.001 + time*0.001;
+            tdata[time] = tzero + start*0.001 + time*fac_t*0.001;
         }
     }else{
 	// read from tfiles
@@ -273,6 +277,11 @@ int VmFile::get_nodect()
     return nodect;
 }
 
+double VmFile::get_fac_t()
+{
+    return fac_t;
+}
+
 int VmFile::get_my_startnode()
 {
     return my_startnode;
@@ -288,7 +297,7 @@ int VmFile::blocksize(int start, int end)
     int return_size;
 
     if(mode == 0)
-      return_size = (end-start+1)*my_block;
+        return_size = ((end-start)/fac_t+1)*my_block;
     else
 	return_size = (end-start+1)*my_block;
     

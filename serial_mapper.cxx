@@ -13,6 +13,7 @@ int main(int argc, char** argv)
     char* repolmap = NULL;
     char* apdmap = NULL;
     char* freqmap = NULL;
+    char* cbmap = NULL;
     char* igbfile = NULL;
     int start = 0;
     int end = 0;
@@ -30,6 +31,7 @@ int main(int argc, char** argv)
 	{"repolmap", required_argument, 0, 'r'},
 	{"apdmap", required_argument, 0, 'd'},
 	{"freqmap", required_argument, 0, 'f'},
+	{"cbmap", required_argument, 0, 'o'},
 	{"isochrone", required_argument, 0, 'i'},
 	{"pct", required_argument, 0, 'p'},
 	{"igbfile", required_argument, 0, 'g'},
@@ -45,6 +47,7 @@ int main(int argc, char** argv)
 	case 'r': repolmap = optarg; break;
 	case 'd': apdmap = optarg; break;
 	case 'f': freqmap = optarg; break;
+	case 'o': cbmap = optarg; break;
 	case 'i': isochrone = atof(optarg); break;
 	case 'p': pct = atof(optarg); break;
 	case 'g': igbfile = optarg; break;
@@ -87,7 +90,7 @@ int main(int argc, char** argv)
     if(apdmap != NULL && (actmap == NULL || repolmap == NULL))
 	cerr << "WARNING: You specifed an APD map without activation and repolarization maps. We will have to calculate them anyway, but they won't necessarily be output (depending on which you specified). Continuing... " << endl;
     
-    if(actmap == NULL && repolmap == NULL && apdmap == NULL && freqmap == NULL){
+    if(actmap == NULL && repolmap == NULL && apdmap == NULL && freqmap == NULL && cbmap == NULL){
 	cerr << "Stubbornly refusing to do a bunch of work without an output file specified. Bailing." << endl;
 	usage();
     }
@@ -105,6 +108,7 @@ int main(int argc, char** argv)
     ActData* repols;
     ActData* apds;
     ActData* dfs;
+    ActData* cbs;
     int timesteps = (end-start+1);
 
     // get our data no matter what we're doing with it.
@@ -141,6 +145,13 @@ int main(int argc, char** argv)
 	write_datfile(freqmap, &dfs, nodect, tdata[0], isochrone);
 	cerr << "done." << endl;
     }
+
+    if(cbmap != NULL){
+	cerr << "Generating conduction block map... ";
+	cbmap_mod(timesteps, &tdata, &vdata, nodect, &cbs);
+	write_datfile(cbmap, &cbs, nodect, tdata[0], isochrone);
+	cerr << "done." << endl;
+    }
     cerr << "All done, exiting. " << endl;
 
     return 0;
@@ -161,6 +172,7 @@ void usage()
     cerr << "     --repolmap  (-r) (filename) : outputs a repol map of the given name " << endl;
     cerr << "     --apdmap    (-d) (filename) : outputs an APD map of the given name " << endl;
     cerr << "     --freqmap   (-f) (filename) : outputs a dominant frequency map of the given name " << endl;
+    cerr << "     --cbmap     (-o) (filename) : outputs a conduction block map of the given name " << endl;
     cerr << "     --isochrone (-i) (decimal)  : isochrone interval for output (in seconds) " << endl;
     cerr << "     --pct       (-p) (decimal)  : Percent repol for APD. As a fraction of 1, not a fraction of 100. Default is 0.9 (90%). " << endl;
     cerr << "     --help      (-h)            : this message " << endl;

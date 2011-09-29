@@ -25,6 +25,7 @@ int main(int argc, char** argv){
     ActData* my_actdata = new ActData;
     ActData* my_repoldata = new ActData;
     ActData* my_dfdata = new ActData;
+    ActData* my_cbdata = new ActData;
     float* my_tdata = new float[DEFAULTSIZE];
     float* my_vdata = new float[DEFAULTSIZE];
     int my_data_ct;
@@ -52,6 +53,8 @@ int main(int argc, char** argv){
 //     cout << "Sample is of length " << my_data_ct << ". "<< endl;
 //     df_mod(my_tdata, my_vdata, my_data_ct, my_dfdata);
 //     cout << "Dominant frequency is " << my_dfdata->value << "Hz, found at " << my_dfdata->time  << endl;
+//     cb_mod(my_tdata, my_vdata, my_data_ct, my_dfdata);
+//     cout << "Conduction block score is " << my_cbdata->value << "%, found at " << my_cbdata->time  << endl;
 //     if(my_actdata->found)
 //  	repol_mod(my_tdata, my_vdata, my_data_ct, my_actdata, my_repoldata, 0.9);
 
@@ -70,10 +73,12 @@ int main(int argc, char** argv){
     ActData* repols;
     ActData* apds;
     ActData* dfs;
+    ActData* cbs;
     char amapfile[] = "amap_test.d0";
     char rmapfile[] = "rmap_test.d0";
     char apdmapfile[] = "apdmap_test.d0";
     char dfmapfile[] = "dfmap_test.d0";
+    char cbmapfile[] = "cbmap_test.d0";
     
 //    read_tfiles(basename, start, end, &tdata, &vdata, &nodect);
     
@@ -87,10 +92,12 @@ int main(int argc, char** argv){
 //     rmap_mod((end-start+1), &tdata, &vdata, nodect, &activations, &repols, 0.8);
 //     apdmap_mod(nodect, &activations, &repols, &apds);
 //     dfmap_mod((end-start+1), &tdata, &vdata, nodect, &dfs);
+//     cbmap_mod((end-start+1), &tdata, &vdata, nodect, &cbs);
 //     write_datfile(amapfile, &activations, nodect, tdata[0], 0.01);
 //     write_datfile(rmapfile, &repols, nodect, tdata[0], 0.01);
 //     write_datfile(apdmapfile, &apds, nodect, *tdata, 0.01);
 //     write_datfile(dfmapfile, &dfs, nodect, *tdata, 0.001);
+//     write_datfile(cbmapfile, &cbs, nodect, *tdata, 0.001);
 }
 
 void berr(string message){

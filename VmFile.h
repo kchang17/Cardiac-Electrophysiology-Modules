@@ -15,6 +15,7 @@ public:
     int  get_time(); // find out at which time step the next read will take place
     void get_step(int time, float* vdata); // get data for one time step at step "time"
     int get_nodect(); // how many nodes *total* in the model
+    double get_fac_t(); // time step of the simulation (ms)
     int get_my_startnode(); // what's the first node that this process will read?
     int get_my_block(); // how many nodes will this process read?
     int get_igb_timesteps(); // how many timesteps does the IGB file claim to have in the header?

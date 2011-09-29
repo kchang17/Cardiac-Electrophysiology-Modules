@@ -357,5 +357,24 @@ void dfmap_mod(int timesteps, float* tdata, float* vdata, int nodect, MapStruct*
 // Outputs:
 //   dfs - 1-D array of dominant frequency
 
+void cb_mod(float* tdata, float* vdata, int ndata, MapStruct* cbs);
+// Calculate the conduction block score for one node
+// Inputs:
+//   tdata - 1-D array of times
+//   vdata - 1-D array of voltage data
+//   ndata - how many time steps are in the arrays
+// Outpts:
+//   Conduction block score. Just one float. (in %)
+
+void cbmap_mod(int timesteps, float* tdata, float* vdata, int nodect, MapStruct* cbs);
+// Generate a map of conduction block scores over a range of nodes
+// Inputs:
+//   timesteps - number of timesteps in the arrays
+//   tdata - 1-D array of time data
+//   vdata - 2-D array of time data
+//   nodect - how many nodes are in the supplied arrays
+// Outputs:
+//   cbs - 1-D array of conduction block scores
+
 #endif
 

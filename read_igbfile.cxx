@@ -20,11 +20,13 @@ void read_igbfile(char* filename, int start, int* end, float** tdata, float** vd
     char* units;
     char separators[] = " :\n";
     int x, y, z, t;
+    float fac_t;
     token = dattype = endianness = NULL;
     bool swapbytes = 0;
     float zero;
     int datsize;
     t = datsize = -1;
+    fac_t = -1;
     zero = 0;
     x = y = z = 1;
     int range;
@@ -57,6 +59,8 @@ void read_igbfile(char* filename, int start, int* end, float** tdata, float** vd
 	    z = atoi(strtok(NULL, separators));
 	if(!strcmp(token,"t"))
 	    t = atoi(strtok(NULL, separators));
+	if(!strcmp(token,"fac_t"))
+	    fac_t = atoi(strtok(NULL, separators));
 	if(!strcmp(token,"type")){
 	    dattype = strtok(NULL, separators);
 	    if(!strcmp(dattype,"float")){
@@ -88,8 +92,8 @@ void read_igbfile(char* filename, int start, int* end, float** tdata, float** vd
 	token = strtok(NULL, separators);
     }
     
-    if(t == -1 || dattype == NULL || endianness == NULL || datsize == -1 || zero == -1 || (x == 1 && y == 1 && t == 1)){
-	all_abort("IGB header was missing one of x, y, z, t, type, systeme (endianness), datsize, or zero.");
+    if(t == -1 || fac_t == -1 || dattype == NULL || endianness == NULL || datsize == -1 || zero == -1 || (x == 1 && y == 1 && t == 1)){
+	all_abort("IGB header was missing one of x, y, z, t, fac_t, type, systeme (endianness), datsize, or zero.");
     }
 
     if(x*y*z > x && x*y*z > y && x*y*z > z){
@@ -104,7 +108,7 @@ void read_igbfile(char* filename, int start, int* end, float** tdata, float** vd
 	all_abort("Insufficient memory when allocating vdata storage.");
     *tdata = (float*)malloc(range*sizeof(float));
     for(int i = 0; i < range; i++){
-	*(*tdata + i) = (zero + start + i)*0.001;
+	*(*tdata + i) = (zero + start + i)*fac_t*0.001;
     }
 
     int lineblock = 100;

@@ -24,6 +24,7 @@ int main(int argc, char** argv)
     char* apdmap = NULL;
     char* triangmap = NULL;
     char* freqmap = NULL;
+    char* cbmap = NULL;
     char* igbfile = NULL;
     int start = 0;
     int end = 0;
@@ -50,6 +51,7 @@ int main(int argc, char** argv)
 	{"apdmap", required_argument, 0, 'd'},
         {"triangmap", required_argument, 0, 'c'},
 	{"freqmap", required_argument, 0, 'f'},
+	{"cbmap", required_argument, 0, 'o'},
 	{"isochrone", required_argument, 0, 'i'},
 	{"repol_vm", required_argument, 0, 'p'},
         {"repol30_vm", required_argument, 0, 'j'},
@@ -74,10 +76,10 @@ int main(int argc, char** argv)
 #endif
 
 #ifndef AIX
-    while((optc = getopt_long(argc, argv, "n:g:s:e:a:r:m:v:d:c:f:i:h:p:j:k:t:b:3", long_options, &option_index)) != -1){
+    while((optc = getopt_long(argc, argv, "n:g:s:e:a:r:m:v:d:c:f:o:i:h:p:j:k:t:b:3", long_options, &option_index)) != -1){
 #endif
 #ifdef AIX
-    while(((optc) = getopt(argc, argv, "n:g:s:e:a:r:m:v:d:c:f:i:h:p:j:k:t:b:3")) != -1){
+    while(((optc) = getopt(argc, argv, "n:g:s:e:a:r:m:v:d:c:f:o:i:h:p:j:k:t:b:3")) != -1){
 #endif
 	switch(optc){
 	case 'n': basename = optarg; break;
@@ -88,6 +90,7 @@ int main(int argc, char** argv)
 	case 'd': apdmap = optarg; break;
         case 'c': triangmap = optarg; break;
 	case 'f': freqmap = optarg; break;
+	case 'o': cbmap = optarg; break;
 	case 'i': isochrone = atof(optarg); break;
 	case 'p': repol_vm = atof(optarg); break;
         case 'j': repol30_vm = atof(optarg); break;
@@ -137,7 +140,7 @@ int main(int argc, char** argv)
     if(isochrone > 1)
 	warn("Isochone time units are seconds, NOT milliseconds. Are your units correct?");
     
-    if(actmap == NULL && repolmap == NULL && apdmap == NULL && freqmap == NULL && toutname == NULL && triangmap == NULL){
+    if(actmap == NULL && repolmap == NULL && apdmap == NULL && freqmap == NULL && cbmap == NULL && toutname == NULL && triangmap == NULL){
 	usage();
 	all_abort("Stubbornly refusing to do a bunch of work without an output file specified.");
     }
@@ -153,7 +156,7 @@ int main(int argc, char** argv)
     if(timeblock < 1)
 	all_abort("Block size less than one is nonsense.");
 
-    if(timeblock != 1 && freqmap != NULL)
+    if(timeblock != 1 && (freqmap != NULL || cbmap != NULL) )
 	warn("Time block size will be ignored because FFT is being used, and it requires the whole time series.");
 
     if(triangmap != NULL && repol30_vm == -1 && repol90_vm == -1)
@@ -170,6 +173,7 @@ int main(int argc, char** argv)
     MapStruct* repol30 = NULL;
     MapStruct* repol90 = NULL;
     MapStruct* dfs = NULL;
+    MapStruct* cbs = NULL;
     int timesteps;
     int timestep;
     VmFile vmfile;
@@ -193,8 +197,8 @@ int main(int argc, char** argv)
         
     // Here starts the real processing
     // if using FFT, set timeblock to the total range
-    timesteps = (end-start+1);
-    if(freqmap != NULL)
+    timesteps = ((end-start)/vmfile.get_fac_t()+1);
+    if(freqmap != NULL || cbmap != NULL)
 	timeblock = timesteps;
 
     timestep = 0;
@@ -228,8 +232,11 @@ int main(int argc, char** argv)
     if(freqmap != NULL)
 	initialize_map(&dfs, my_block);
 
+    if(cbmap != NULL)
+	initialize_map(&cbs, my_block);
+
     for(int timestep = 0; timestep < total_steps; timestep++){
-	vmfile.get_steps(start+timestep*mainblock, start+timestep*mainblock+timeblock-1, tdata, vdata);
+	vmfile.get_steps(start+timestep*mainblock, start+timestep*mainblock+(timeblock-1)*vmfile.get_fac_t(), tdata, vdata);
 	
 	// now process
 	if(activations != NULL)
@@ -245,6 +252,8 @@ int main(int argc, char** argv)
         }
 	if(dfs != NULL)
 	    dfmap_mod(timeblock, tdata, vdata, my_block, dfs);
+	if(cbs != NULL)
+	    cbmap_mod(timeblock, tdata, vdata, my_block, cbs);
 	if(toutname != NULL)
 	    write_tfiles(toutname, tdata, vdata, timestep*mainblock, timeblock, my_block, threecols);
 	if(remainder > 0 && timestep == total_steps - 2)
@@ -265,6 +274,8 @@ int main(int argc, char** argv)
       write_datfile(triangmap, triangs, my_block, tdata[0], isochrone, header, false);
     if(dfs != NULL && freqmap != NULL)
 	write_datfile(freqmap, dfs, my_block, tdata[0], isochrone, header, false);
+    if(cbs != NULL && cbmap != NULL)
+	write_datfile(cbmap, cbs, my_block, tdata[0], isochrone, header, false);
     
     if(igbfile != NULL)
 	vmfile.close();
@@ -297,12 +308,13 @@ void usage()
 	cerr << "     --apdmap     (-d) (filename) : Outputs an APD map of the given name " << endl;
         cerr << "     --triangmap  (-c) (filename) : Outputs a triangulation map of the given name " << endl;
 	cerr << "     --freqmap    (-f) (filename) : Outputs a dominant frequency map of the given name " << endl;
+	cerr << "     --cbmap      (-o) (filename) : Outputs a conduction block map of the given name " << endl;
 	cerr << "     --isochrone  (-i) (decimal)  : Isochrone interval for output (in seconds) " << endl;
 	cerr << "     --repol_vm   (-p) (decimal)  : Repol threshold for APD in V. Default is -0.070 (-70 mV)" << endl;
         cerr << "     --repol30_vm (-j) (decimal)  : Repol threshold for triangulation in V. Default is -1 (-1000 mV)" << endl;
         cerr << "     --repol90_vm (-k) (decimal)  : Repol threshold for traingulation in V. Default is -1 (-1000 mV)" << endl;
 	cerr << "     --toutname   (-t) (string)   : Output filename to use for tfiles. \".t<number>\" will be appended to this name." << endl;
-	cerr << "     --timeblock  (-b) (integer)  : How many timesteps to load per processing step. This will be ignored if --freqmap (-f) is used." << endl;
+	cerr << "     --timeblock  (-b) (integer)  : How many timesteps to load per processing step. This will be ignored if --freqmap (-f) or if --cbmap (-o) is used." << endl;
 	cerr << "     --help       (-h)            : this message " << endl;
     }
 }
