@@ -23,6 +23,8 @@ df_mod.cxx
 dfmap_mod.cxx
 cb_mod.cxx
 cbmap_mod.cxx
+fdr_mod.cxx
+fdrmap_mod.cxx
 freqmap_mod.cxx
 periodmap_mod.cxx
 dimap_mod.cxx

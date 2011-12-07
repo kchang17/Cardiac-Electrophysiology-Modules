@@ -376,5 +376,29 @@ void cbmap_mod(int timesteps, float* tdata, float* vdata, int nodect, MapStruct*
 // Outputs:
 //   cbs - 1-D array of conduction block scores
 
+void fdr_mod(float* tdata, float* vdata, int ndata, int freq, MapStruct* cps, MapStruct* dcps, MapStruct* hfps, MapStruct* tps);
+// Calculate the conduction, DC, HF, and total power for one node
+// Inputs:
+//   tdata - 1-D array of times
+//   vdata - 1-D array of voltage data
+//   ndata - how many time steps are in the arrays
+//   freq - frequency of HFAC pulse (in Hz)
+// Outpts:
+//   Conduction, DC, HF, and total power.
+
+void fdrmap_mod(int timesteps, float* tdata, float* vdata, int nodect, int freq, MapStruct* cps, MapStruct* dcps, MapStruct* hfps, MapStruct* tps);
+// Generate a map of conduction, DC, HF, and total power over a range of nodes
+// Inputs:
+//   timesteps - number of timesteps in the arrays
+//   tdata - 1-D array of time data
+//   vdata - 2-D array of time data
+//   nodect - how many nodes are in the supplied arrays
+//   freq - frequency of HFAC pulse (in Hz)
+// Outputs:
+//   cps - 1-D array of conduction power
+//   dcps - 1-D array of conduction power
+//   hfps - 1-D array of conduction power
+//   tps - 1-D array of conduction power
+
 #endif
 

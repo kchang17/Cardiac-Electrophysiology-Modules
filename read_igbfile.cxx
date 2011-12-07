@@ -60,7 +60,7 @@ void read_igbfile(char* filename, int start, int* end, float** tdata, float** vd
 	if(!strcmp(token,"t"))
 	    t = atoi(strtok(NULL, separators));
 	if(!strcmp(token,"fac_t"))
-	    fac_t = atoi(strtok(NULL, separators));
+	    fac_t = atof(strtok(NULL, separators));
 	if(!strcmp(token,"type")){
 	    dattype = strtok(NULL, separators);
 	    if(!strcmp(dattype,"float")){

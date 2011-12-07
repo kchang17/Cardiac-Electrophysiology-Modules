@@ -152,6 +152,7 @@ int main(int argc, char** argv)
 	write_datfile(cbmap, &cbs, nodect, tdata[0], isochrone);
 	cerr << "done." << endl;
     }
+
     cerr << "All done, exiting. " << endl;
 
     return 0;
