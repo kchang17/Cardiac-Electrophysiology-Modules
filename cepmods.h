@@ -386,7 +386,7 @@ void fdr_mod(float* tdata, float* vdata, int ndata, int freq, MapStruct* cps, Ma
 // Outpts:
 //   Conduction, DC, HF, and total power.
 
-void fdrmap_mod(int timesteps, float* tdata, float* vdata, int nodect, int freq, MapStruct* cps, MapStruct* dcps, MapStruct* hfps, MapStruct* tps);
+void fdrmap_mod(int timesteps, float* tdata, float* vdata, int freq, int nodect, MapStruct* cps, MapStruct* dcps, MapStruct* hfps, MapStruct* tps);
 // Generate a map of conduction, DC, HF, and total power over a range of nodes
 // Inputs:
 //   timesteps - number of timesteps in the arrays
@@ -396,9 +396,57 @@ void fdrmap_mod(int timesteps, float* tdata, float* vdata, int nodect, int freq,
 //   freq - frequency of HFAC pulse (in Hz)
 // Outputs:
 //   cps - 1-D array of conduction power
-//   dcps - 1-D array of conduction power
-//   hfps - 1-D array of conduction power
-//   tps - 1-D array of conduction power
+//   dcps - 1-D array of DC conduction power
+//   hfps - 1-D array of HF conduction power
+//   tps - 1-D array of total conduction power
+
+void hj_mod(float* tdata, float* vdata, float* hdata, float* jdata, int ndata, int freq, int delay, MapStruct* hjs);
+// Calculate the hj metric during HFAC field for one node
+// Inputs:
+//   tdata - 1-D array of times
+//   vdata - 1-D array of voltage data
+//   hdata - 1-D array of h gate data
+//   jdata - 1-D array of j gate data
+//   ndata - how many time steps are in the arrays
+//   freq  - frequency of HFAC pulse (in Hz)
+//   delay - delay in ms between activation detections
+// Outpts:
+//   hj metric
+
+void hjmap_mod(int timesteps, float* tdata, float* vdata, float* hdata, float* jdata, int freq, int delay, int nodect, MapStruct* hjs);
+// Generate a map of conduction, DC, HF, and total power over a range of nodes
+// Inputs:
+//   timesteps - number of timesteps in the arrays
+//   tdata - 1-D array of time data
+//   vdata - 2-D array of time data
+//   nodect - how many nodes are in the supplied arrays
+//   freq - frequency of HFAC pulse (in Hz)
+// Outputs:
+//   hjs - 1-D array of hj metric
+
+void mv_mod(float* tdata, float* vdata, float* hdata, float* jdata, int ndata, int freq, int delay, MapStruct* mvs);
+// Calculate the mv metric during HFAC field for one node
+// Inputs:
+//   tdata - 1-D array of times
+//   vdata - 1-D array of voltage data
+//   hdata - 1-D array of h gate data
+//   jdata - 1-D array of j gate data
+//   ndata - how many time steps are in the arrays
+//   freq  - frequency of HFAC pulse (in Hz)
+//   delay - delay in ms between activation detections
+// Outpts:
+//   mv metric
+
+void mvmap_mod(int timesteps, float* tdata, float* vdata, float* hdata, float* jdata, int freq, int delay, int nodect, MapStruct* mvs);
+// Generate a map of conduction, DC, HF, and total power over a range of nodes
+// Inputs:
+//   timesteps - number of timesteps in the arrays
+//   tdata - 1-D array of time data
+//   vdata - 2-D array of time data
+//   nodect - how many nodes are in the supplied arrays
+//   freq - frequency of HFAC pulse (in Hz)
+// Outputs:
+//   mvs - 1-D array of mv metric
 
 #endif
 

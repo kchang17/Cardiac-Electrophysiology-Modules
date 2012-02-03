@@ -25,6 +25,10 @@ cb_mod.cxx
 cbmap_mod.cxx
 fdr_mod.cxx
 fdrmap_mod.cxx
+hj_mod.cxx
+hjmap_mod.cxx
+mv_mod.cxx
+mvmap_mod.cxx
 freqmap_mod.cxx
 periodmap_mod.cxx
 dimap_mod.cxx
