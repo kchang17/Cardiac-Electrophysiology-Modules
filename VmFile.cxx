@@ -92,11 +92,12 @@ void VmFile::open(char* filename, int tnum)
 	    if(!strcmp(token,"unites")){
 		units = strtok(NULL, separators);
 		str_tolower(units);
-		if(!strcmp(units,"mv"))
+		if(!strcmp(units,"mv")){
 #ifdef DEBUG
 		    cerr << "Scaling for milli-Volts" << endl;
 #endif
 		    voltagescale = 0.001;
+                }
 	    }
 
 	    // finish by looking for another token

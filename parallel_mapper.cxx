@@ -33,7 +33,10 @@ int main(int argc, char** argv)
     char hfpmap [50];
     char tpmap [50];
     char hjfile [50];
-    char mvfile [50];
+    char vmaxfile [50];
+    char vminfile [50];
+    char velevfile [50];
+    char deltavfile [50];
     char* igbfile = NULL;
     char* higbfile = NULL;
     char* jigbfile = NULL;
@@ -41,7 +44,6 @@ int main(int argc, char** argv)
     int end = 0;
     int freq = 0;
     int delay = 0;
-    int len = 0;
     int timeblock = 1;
     char* toutname = NULL;
     int optc;
@@ -171,16 +173,21 @@ int main(int argc, char** argv)
 	all_abort("Stubbornly refusing to do a bunch of work without an output file specified.");
     }
 
-    if(hjmap == true || mvmap == true){
+    if(hjmap == true){
         if(igbfile == NULL || higbfile == NULL || jigbfile == NULL){
             usage();
-            all_abort("If calculating hjmap or mvmap, must specify Vm, h, and j igb files.");
+            all_abort("If calculating hjmap, must specify Vm, h, and j igb files.");
         }
+        if(delay == 0)
+            warn("Using default delay of 0 ms with hjmap.  Analysis will probably be sketchy.");
     }
-    
-    if(hjmap == true || mvmap == true){
-        if(delay == 0){
-            warn("Using default delay of 0 ms with hjmap or mvmap.  Analysis will probably be sketchy.");
+
+    if(hjmap == false){
+        if(higbfile != NULL || jigbfile !=NULL || delay != 0){
+            warn("hjmap option not specified.  higbfile, jigbfile, and delay options will be ignored");
+            higbfile = NULL;
+            jigbfile = NULL;
+            delay = 0;
         }
     }
     
@@ -220,7 +227,10 @@ int main(int argc, char** argv)
     MapStruct* hfps = NULL;
     MapStruct* tps = NULL;
     MapStruct* hjs = NULL;
-    MapStruct* mvs = NULL;
+    MapStruct* vmaxs = NULL;
+    MapStruct* vmins = NULL;
+    MapStruct* velevs = NULL;
+    MapStruct* deltavs = NULL;
     int timesteps;
     int timestep;
     VmFile vmfile;
@@ -293,10 +303,10 @@ int main(int argc, char** argv)
 	initialize_map(&cbs, my_block);
 
     if(fdrmap == true){
-        len = sprintf(cpmap,"CPMAP_s_%d_e_%d.dat",start,end);
-        len = sprintf(dcpmap,"DCPMAP_s_%d_e_%d.dat",start,end);
-        len = sprintf(hfpmap,"HFPMAP_f_%d_s_%d_e_%d.dat",freq,start,end);
-        len = sprintf(tpmap,"TPMAP_s_%d_e_%d.dat",start,end);
+        sprintf(cpmap,"CPMAP_s_%d_e_%d.dat",start,end);
+        sprintf(dcpmap,"DCPMAP_s_%d_e_%d.dat",start,end);
+        sprintf(hfpmap,"HFPMAP_f_%d_s_%d_e_%d.dat",freq,start,end);
+        sprintf(tpmap,"TPMAP_s_%d_e_%d.dat",start,end);
 	initialize_map(&cps, my_block);
 	initialize_map(&dcps, my_block);
 	initialize_map(&hfps, my_block);
@@ -304,23 +314,26 @@ int main(int argc, char** argv)
     }
 
     if(hjmap == true){
-        len = sprintf(hjfile,"HJMAP_s_%d_e_%d_b_%d.dat",start,end,delay);
+        sprintf(hjfile,"HJMAP_s_%d_e_%d_b_%d.dat",start,end,delay);
 	initialize_map(&hjs, my_block);
-    }
-
-    if(mvmap == true){
-        len = sprintf(mvfile,"MVMAP_s_%d_e_%d_b_%d.dat",start,end,delay);
-	initialize_map(&mvs, my_block);
-    }
-
-    if(hjmap == true || mvmap == true){
         hdata = new float [hfile.get_my_block() * timeblock];
         jdata = new float [jfile.get_my_block() * timeblock];
     }
 
+    if(mvmap == true){
+        sprintf(vmaxfile,"VMAXMAP_s_%d_e_%d.dat",start,end);
+        sprintf(vminfile,"VMINMAP_s_%d_e_%d.dat",start,end);
+        sprintf(velevfile,"VELEVMAP_s_%d_e_%d.dat",start,end);
+        sprintf(deltavfile,"DELTAVMAP_s_%d_e_%d.dat",start,end);
+	initialize_map(&vmaxs, my_block);
+	initialize_map(&vmins, my_block);
+	initialize_map(&velevs, my_block);
+	initialize_map(&deltavs, my_block);
+    }
+
     for(int timestep = 0; timestep < total_steps; timestep++){
 	vmfile.get_steps(start+timestep*mainblock, start+timestep*mainblock+(timeblock-1)*vmfile.get_fac_t(), tdata, vdata);
-        if(hjmap == true || mvmap == true){
+        if(hjmap == true){
 	    hfile.get_steps(start+timestep*mainblock, start+timestep*mainblock+(timeblock-1)*hfile.get_fac_t(), tdata, hdata);
 	    jfile.get_steps(start+timestep*mainblock, start+timestep*mainblock+(timeblock-1)*jfile.get_fac_t(), tdata, jdata);
         }
@@ -345,8 +358,8 @@ int main(int argc, char** argv)
 	    fdrmap_mod(timeblock, tdata, vdata, freq, my_block, cps, dcps, hfps, tps);
 	if(hjs != NULL)
 	    hjmap_mod(timeblock, tdata, vdata, hdata, jdata, freq, delay, my_block, hjs);
-	if(mvs != NULL)
-	    mvmap_mod(timeblock, tdata, vdata, hdata, jdata, freq, delay, my_block, mvs);
+	if(vmaxs != NULL && vmins != NULL && velevs != NULL && deltavs != NULL)
+	    mvmap_mod(timeblock, tdata, vdata, freq, my_block, vmaxs, vmins, velevs, deltavs);
 	if(toutname != NULL)
 	    write_tfiles(toutname, tdata, vdata, timestep*mainblock, timeblock, my_block, threecols);
 	if(remainder > 0 && timestep == total_steps - 2)
@@ -366,19 +379,27 @@ int main(int argc, char** argv)
     if(triangs != NULL && triangmap != NULL)
       write_datfile(triangmap, triangs, my_block, tdata[0], isochrone, header, false);
     if(dfs != NULL && freqmap != NULL)
-	write_datfile(freqmap, dfs, my_block, tdata[0], 0, header, false);
+	write_datfile(freqmap, dfs, my_block, tdata[0], isochrone, header, false);
     if(cbs != NULL && cbmap != NULL)
 	write_datfile(cbmap, cbs, my_block, tdata[0], 0, header, false);
-    if(cps != NULL && dcps != NULL && hfps != NULL && tps != NULL && fdrmap == true){
+    if(cps != NULL && tpmap != NULL)
 	write_datfile(cpmap, cps, my_block, tdata[0], 0, header, false);
+    if(dcps != NULL && tpmap != NULL)
 	write_datfile(dcpmap, dcps, my_block, tdata[0], 0, header, false);
+    if(hfps != NULL && tpmap != NULL)
 	write_datfile(hfpmap, hfps, my_block, tdata[0], 0, header, false);
+    if(tps != NULL && tpmap != NULL)
 	write_datfile(tpmap, tps, my_block, tdata[0], 0, header, false);
-    }
     if(hjs != NULL && hjfile != NULL)
 	write_datfile(hjfile, hjs, my_block, tdata[0], 0, header, false);
-    if(mvs != NULL && mvfile != NULL)
-	write_datfile(mvfile, mvs, my_block, tdata[0], 0, header, false);
+    if(vmaxs != NULL && vmaxfile != NULL)
+	write_datfile(vmaxfile, vmaxs, my_block, tdata[0], 0, header, false);
+    if(vmins != NULL && vminfile != NULL)
+	write_datfile(vminfile, vmins, my_block, tdata[0], 0, header, false);
+    if(velevs != NULL && velevfile != NULL)
+	write_datfile(velevfile, velevs, my_block, tdata[0], 0, header, false);
+    if(deltavs != NULL && deltavfile != NULL)
+	write_datfile(deltavfile, deltavs, my_block, tdata[0], 0, header, false);
     
     if(igbfile != NULL)
 	vmfile.close();
@@ -411,10 +432,10 @@ void usage()
 	cerr << "     --apdmap     (-d) (filename) : Outputs an APD map of the given name " << endl;
         cerr << "     --triangmap  (-c) (filename) : Outputs a triangulation map of the given name " << endl;
 	cerr << "     --freqmap    (-f) (filename) : Outputs a dominant frequency map of the given name " << endl;
-	cerr << "     --cbmap      (-o) (filename) : Outputs a conduction block map of the given name " << endl;
+	cerr << "     --cbmap      (-o) (filename) : Outputs a conduction block map of the given name. For use with HFAC pulses. " << endl;
 	cerr << "     --fdrmap     (-l) (frequency): Outputs a conduction power, DC power, HF power, and total power map.  HF power is centered around the given frequency (Hz)." << endl;
 	cerr << "     --hjmap      (-q) (filename) : Outputs an hj map with the given frequency.  For analysis of HFAC pulse responses." << endl;
-	cerr << "     --mvmap      (-y) (filename) : Outputs an mv map with the given frequency.  For analysis of HFAC pulse responses." << endl;
+	cerr << "     --mvmap      (-y) (filename) : Outputs vmax, vmin, velev, and deltav maps using the given frequency.  For analysis of HFAC pulse responses." << endl;
 	cerr << "     --higbfile   (-u) (filename) : IGB file to read data from. Can read zipped but it's VERY VERY slow." << endl;
 	cerr << "     --jigbfile   (-w) (filename) : IGB file to read data from. Can read zipped but it's VERY VERY slow." << endl;
 	cerr << "     --delay      (-x) (integer)  : Delay for hjmap or mvmap (in milliseconds) " << endl;

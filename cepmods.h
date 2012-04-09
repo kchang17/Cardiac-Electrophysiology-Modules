@@ -414,39 +414,43 @@ void hj_mod(float* tdata, float* vdata, float* hdata, float* jdata, int ndata, i
 //   hj metric
 
 void hjmap_mod(int timesteps, float* tdata, float* vdata, float* hdata, float* jdata, int freq, int delay, int nodect, MapStruct* hjs);
-// Generate a map of conduction, DC, HF, and total power over a range of nodes
+// Generate a map of hj metric over a range of nodes
 // Inputs:
 //   timesteps - number of timesteps in the arrays
 //   tdata - 1-D array of time data
 //   vdata - 2-D array of time data
 //   nodect - how many nodes are in the supplied arrays
 //   freq - frequency of HFAC pulse (in Hz)
+//   delay - delay in ms between activation detections
 // Outputs:
 //   hjs - 1-D array of hj metric
 
-void mv_mod(float* tdata, float* vdata, float* hdata, float* jdata, int ndata, int freq, int delay, MapStruct* mvs);
-// Calculate the mv metric during HFAC field for one node
+void mv_mod(float* tdata, float* vdata, int ndata, int freq, MapStruct* vmaxs, MapStruct* vmins, MapStruct* velevs, MapStruct* deltavs);
+// Calculate the time-domain metrics during HFAC field for one node
 // Inputs:
 //   tdata - 1-D array of times
 //   vdata - 1-D array of voltage data
-//   hdata - 1-D array of h gate data
-//   jdata - 1-D array of j gate data
 //   ndata - how many time steps are in the arrays
 //   freq  - frequency of HFAC pulse (in Hz)
-//   delay - delay in ms between activation detections
 // Outpts:
-//   mv metric
+//   vmax metric
+//   vmin metric
+//   velev metric
+//   deltav metric
 
-void mvmap_mod(int timesteps, float* tdata, float* vdata, float* hdata, float* jdata, int freq, int delay, int nodect, MapStruct* mvs);
-// Generate a map of conduction, DC, HF, and total power over a range of nodes
+void mvmap_mod(int timesteps, float* tdata, float* vdata, int freq, int nodect, MapStruct* vmaxs, MapStruct* vmins, MapStruct* velevs, MapStruct* deltavs);
+// Generate maps of time-domain metrics over a range of nodes
 // Inputs:
 //   timesteps - number of timesteps in the arrays
 //   tdata - 1-D array of time data
 //   vdata - 2-D array of time data
-//   nodect - how many nodes are in the supplied arrays
 //   freq - frequency of HFAC pulse (in Hz)
+//   nodect - how many nodes are in the supplied arrays
 // Outputs:
-//   mvs - 1-D array of mv metric
+//   vmaxs - 1-D array of vmax metric
+//   vmins - 1-D array of vmin metric
+//   velevs - 1-D array of velev metric
+//   deltavs - 1-D array of deltav metric
 
 #endif
 
