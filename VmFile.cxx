@@ -16,6 +16,7 @@ VmFile::VmFile()
     z = 1;
     t = -1;
     fac_t = -1;
+    dim_t = -1;
     nodect = 0;
     tzero = 0;
     voltagescale = 1;
@@ -66,8 +67,10 @@ void VmFile::open(char* filename, int tnum)
 		z = atoi(strtok(NULL, separators));
 	    if(!strcmp(token,"t"))
 		t = atoi(strtok(NULL, separators));
-            if(!strcmp(token,"fac_t"))
-                fac_t = atof(strtok(NULL, separators));
+	    if(!strcmp(token,"fac_t"))
+		fac_t = atoi(strtok(NULL, separators));
+	    if(!strcmp(token,"dim_t"))
+		dim_t = atoi(strtok(NULL, separators));
 	    if(!strcmp(token,"type")){
 		dattype = strtok(NULL, separators);
 		if(!strcmp(dattype,"float")){
@@ -86,7 +89,7 @@ void VmFile::open(char* filename, int tnum)
 		else
 		    swapbytes = 1;
 	    }
-	    if(!strcmp(token,"zero"))
+	    if(!strcmp(token,"org_t"))
 		tzero = atof(strtok(NULL, separators));
 	
 	    if(!strcmp(token,"unites")){
@@ -105,8 +108,8 @@ void VmFile::open(char* filename, int tnum)
 	}
  
 	// Sanity checks
-	if(t == -1 || fac_t == -1 || dattype == NULL || endianness == NULL || datsize == -1 || tzero == -1 || (x == 1 && y == 1 && t == 1)){
-	    all_abort("IGB header was missing one of x, y, z, t, fac_t, type, systeme (endianness), dattype, or zero.");
+	if(t == -1 || dim_t == -1 || dattype == NULL || endianness == NULL || datsize == -1 || tzero == -1 || (x == 1 && y == 1 && t == 1)){
+	    all_abort("IGB header was missing one of x, y, z, t, dim_t, type, systeme (endianness), dattype, or org_t.");
 	}
 
 	if(x*y*z > x && x*y*z > y && x*y*z > z){
@@ -114,6 +117,7 @@ void VmFile::open(char* filename, int tnum)
 	}
 
 	nodect = x*y*z;
+    fac_t = float(dim_t)/float(t-1);
 	if(get_igb_timesteps() != get_true_timesteps())
 	    //all_abort("Actual timesteps don't match expected.");
 	    t = get_true_timesteps();
@@ -138,7 +142,7 @@ void VmFile::open(char* filename, int tnum)
 //	cerr << "Nodect = " << x << endl;
 	y = 1;
 	z = 1;
-        fac_t = 1;
+	fac_t = 1;
 	voltagescale = 1;
 	tfile_currtime = tnum;
     }
