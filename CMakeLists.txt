@@ -15,10 +15,12 @@ project (parallel_mapper)
 
 set (modules
 act_mod.cxx
+alt_mod.cxx
 repol_mod.cxx
 amap_mod.cxx
 rmap_mod.cxx
 apdmap_mod.cxx
+altmap_mod.cxx
 df_mod.cxx
 dfmap_mod.cxx
 cb_mod.cxx

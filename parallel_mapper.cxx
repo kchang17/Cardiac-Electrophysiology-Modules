@@ -22,12 +22,14 @@ int main(int argc, char** argv)
     char* actmap = NULL;
     char* repolmap = NULL;
     char* apdmap = NULL;
+    char* altmap = NULL;
     char* triangmap = NULL;
     char* freqmap = NULL;
     char* cbmap = NULL;
     bool fdrmap = false;
     bool hjmap = false;
     bool mvmap = false;
+    char apd90map [50];
     char cpmap [50];
     char dcpmap [50];
     char hfpmap [50];
@@ -42,6 +44,7 @@ int main(int argc, char** argv)
     char* jigbfile = NULL;
     int start = 0;
     int end = 0;
+    int bcl = 0;
     int freq = 0;
     int delay = 0;
     int timeblock = 1;
@@ -62,7 +65,9 @@ int main(int argc, char** argv)
 	{"name", required_argument, 0, 'n'},
 	{"tstart", required_argument, 0, 's'},
 	{"tend", required_argument, 0, 'e'},
+	{"bcl", required_argument, 0, '7'},
 	{"actmap", required_argument, 0, 'a'},
+	{"altmap", required_argument, 0, 'z'},
 	{"repolmap", required_argument, 0, 'r'},
 	{"apdmap", required_argument, 0, 'd'},
         {"triangmap", required_argument, 0, 'c'},
@@ -98,18 +103,20 @@ int main(int argc, char** argv)
 #endif
 
 #ifndef AIX
-    while((optc = getopt_long(argc, argv, "n:g:u:w:s:e:a:r:m:v:d:c:f:o:l:q:y:u:w:x:i:h:p:j:k:t:b:3", long_options, &option_index)) != -1){
+    while((optc = getopt_long(argc, argv, "n:g:u:w:s:e:7:a:r:m:v:d:z:c:f:o:l:q:y:u:w:x:i:h:p:j:k:t:b:3", long_options, &option_index)) != -1){
 #endif
 #ifdef AIX
-    while(((optc) = getopt(argc, argv, "n:g:u:w:s:e:a:r:m:v:d:c:f:o:l:q:y:u:w:x:i:h:p:j:k:t:b:3")) != -1){
+    while(((optc) = getopt(argc, argv, "n:g:u:w:s:e:7:a:r:m:v:d:z:c:f:o:l:q:y:u:w:x:i:h:p:j:k:t:b:3")) != -1){
 #endif
 	switch(optc){
 	case 'n': basename = optarg; break;
 	case 's': start = atoi(optarg); break;
 	case 'e': end = atoi(optarg); break;
+	case '7': bcl = atoi(optarg); break;
 	case 'a': actmap = optarg; break;
 	case 'r': repolmap = optarg; break;
 	case 'd': apdmap = optarg; break;
+	case 'z': altmap = optarg; break;
         case 'c': triangmap = optarg; break;
 	case 'f': freqmap = optarg; break;
 	case 'o': cbmap = optarg; break;
@@ -168,7 +175,7 @@ int main(int argc, char** argv)
     if(isochrone > 1)
 	warn("Isochone time units are seconds, NOT milliseconds. Are your units correct?");
     
-    if(actmap == NULL && repolmap == NULL && apdmap == NULL && freqmap == NULL && cbmap == NULL && fdrmap == false && hjmap == false && mvmap == false && toutname == NULL && triangmap == NULL){
+    if(actmap == NULL && repolmap == NULL && apdmap == NULL && altmap == NULL && freqmap == NULL && cbmap == NULL && fdrmap == false && hjmap == false && mvmap == false && toutname == NULL && triangmap == NULL){
 	usage();
 	all_abort("Stubbornly refusing to do a bunch of work without an output file specified.");
     }
@@ -217,6 +224,8 @@ int main(int argc, char** argv)
     MapStruct* activations = NULL;
     MapStruct* repols = NULL;
     MapStruct* apds = NULL;
+    MapStruct* apd90s = NULL;
+    MapStruct* alts = NULL;
     MapStruct* triangs = NULL;
     MapStruct* repol30 = NULL;
     MapStruct* repol90 = NULL;
@@ -263,9 +272,9 @@ int main(int argc, char** argv)
     my_block = vmfile.get_my_block();
     
     // Here starts the real processing
-    // if using FFT, set timeblock to the total range
+    // if using FFT or altmap, set timeblock to the total range
     timesteps = ((end-start)/vmfile.get_fac_t()+1);
-    if(freqmap != NULL || cbmap != NULL || fdrmap == true || hjmap == true || mvmap == true)
+    if(altmap != NULL || freqmap != NULL || cbmap != NULL || fdrmap == true || hjmap == true || mvmap == true)
 	timeblock = timesteps;
 
     timestep = 0;
@@ -289,6 +298,12 @@ int main(int argc, char** argv)
 	
     if(apdmap != NULL )
         initialize_map(&apds, my_block);
+
+    if(altmap != NULL ){
+        sprintf(apd90map,"APD_%s",altmap);
+        initialize_map(&apd90s, my_block);
+        initialize_map(&alts, my_block);
+    }
 
     if(triangmap != NULL ){
       initialize_map(&triangs, my_block);
@@ -343,6 +358,8 @@ int main(int argc, char** argv)
 	    amap_mod(timeblock, tdata, vdata, my_block, activations, mindvdt, act_vm);
 	if(repols != NULL)
 	    rmap_mod(timeblock, tdata, vdata, my_block, activations, repols, repol_vm);
+	if(alts != NULL && apd90s != NULL)
+	    altmap_mod(timeblock, tdata, vdata, my_block, apd90s, alts, bcl, vmfile.get_fac_t());
 	if(apds != NULL)
 	    apdmap_mod(my_block, activations, repols, apds);
         if(triangs != NULL){
@@ -376,6 +393,10 @@ int main(int argc, char** argv)
 	write_datfile(repolmap, repols, my_block, tdata[0], isochrone, header, false);
     if(apds != NULL && apdmap != NULL)
 	write_datfile(apdmap, apds, my_block, tdata[0], isochrone, header, false);
+    if(alts != NULL && altmap != NULL)
+    write_datfile(altmap, alts, my_block, tdata[0], isochrone, header, false);
+    if(apd90s != NULL && apd90map != NULL)
+    write_datfile(apd90map, apd90s, my_block, tdata[0], isochrone, header, false);
     if(triangs != NULL && triangmap != NULL)
       write_datfile(triangmap, triangs, my_block, tdata[0], isochrone, header, false);
     if(dfs != NULL && freqmap != NULL)
@@ -425,11 +446,13 @@ void usage()
 	cerr << "     --tend       (-e) (integer)  : End time. Need at least an end time. Filename for t files, offset for IGB." << endl;
 	cerr << "  Optional: " << endl;
 	cerr << "     --tstart     (-s) (integer)  : Start time. Assumed to be zero if not specified. Filenamem for t files, offset for IGB." << endl;
+	cerr << "     --bcl        (-7) (integer)  : BCL for alternans map." << endl;
 	cerr << "     --actmap     (-a) (filename) : Outputs an activation map of the given name " << endl;
         cerr << "     --mindvdt    (-m) (decimal)  : Set minimum dV/dt threshold for detecting activation in V/s. Default is 10." << endl;
         cerr << "     --act_vm     (-v) (decimal)  : Set minimum Vm threshold for detecting activation in V. Default is -0.070." << endl;
 	cerr << "     --repolmap   (-r) (filename) : Outputs a repol map of the given name " << endl;
 	cerr << "     --apdmap     (-d) (filename) : Outputs an APD map of the given name " << endl;
+	cerr << "     --altmap     (-z) (filename) : Outputs an alternans map of the given name and an APD90 map with \"APD_\" prefixed to the given name (specify BCL)" << endl;
         cerr << "     --triangmap  (-c) (filename) : Outputs a triangulation map of the given name " << endl;
 	cerr << "     --freqmap    (-f) (filename) : Outputs a dominant frequency map of the given name " << endl;
 	cerr << "     --cbmap      (-o) (filename) : Outputs a conduction block map of the given name. For use with HFAC pulses. " << endl;

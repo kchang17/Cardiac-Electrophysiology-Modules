@@ -52,11 +52,20 @@ void write_datfile(char* filename, MapStruct* actdata, int datact, float headert
 	if(tmp == -1)
 	    tmp = 0;
 	if(iso_step > 0){
-	    current_iso = 0;
-	    
-	    while(tmp > current_iso && tmp != 0){
-		current_iso += iso_step;
-	    }
+        if (tmp > 0){
+            current_iso = 0;
+            
+            while(tmp > current_iso && tmp != 0){
+            current_iso += iso_step;
+            }
+        }
+        else{
+            current_iso = 0;
+            
+            while(tmp < current_iso && tmp != 0){
+            current_iso -= iso_step;
+            }
+        }
 	    tmp = current_iso;
 	}
 	if(threecols)

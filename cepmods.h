@@ -245,6 +245,18 @@ void repol_mod(float* tdata, float* vdata, int ndata, MapStruct* actdata, MapStr
 // Outputs:
 //   repoldata - repolarization time (1 float)
 
+void alt_mod(float* tdata, float* vdata, int ndata, MapStruct* apddata, MapStruct* altdata, int bcl, float fac_t);
+// Gets mean APD90 and alternans data for ONLY ONE NODE
+// Inputs:
+//   tdata - 1-D time data array
+//   vdata - 1-D voltage data array
+//   ndata - how many time steps are in the arrays
+//   bcl - basic cycle length (ms)
+//   fac_t - output resolution (ms)
+// Outputs:
+//   apddata - APD90 data (1 float)
+//   altdata - alternans data (1 float)
+
 void negcross_mod(float* tdata, float* vdata, int ndata, MapStruct* crossdata, float threshold);
 // Get time of negative threshold crossing
 // Inputs:
@@ -337,6 +349,17 @@ void apdmap_mod(int nodect, MapStruct* activations, MapStruct* repols, MapStruct
 //   repols - 1-D repol time array
 // Outputs:
 //   apds - 1-D repolarization time array
+
+void altmap_mod(int timesteps, float* tdata, float* vdata, int nodect, MapStruct* apds, MapStruct* alts, int bcl, float fac_t);
+// Runs alternans and APD90 calculations on an entire 2-D array of nodes/times
+// Inputs:
+//   timesteps - how many time steps are in the arrays
+//   nodect - how many nodes are in the arrays
+//   tdata - 1-D time data array
+//   vdata - 2-D voltage data array
+// Outputs:
+//   apds - 1-D activation time array
+//   alts - 1-D activation time array
 
 void df_mod(float* tdata, float* vdata, int ndata, MapStruct* dfs);
 // Calculate the dominant frequency for one node

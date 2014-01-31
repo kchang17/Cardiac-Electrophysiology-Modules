@@ -194,7 +194,7 @@ void VmFile::get_steps(int start, int end, float* tdata, float* vdata)
 	set_time(end/fac_t+1);
 
         for(int time = 0; time < range; time++){
-            tdata[time] = tzero + start*0.001 + time*fac_t*0.001;
+            tdata[time] = tzero*0.001 + start*0.001 + time*fac_t*0.001;
         }
     }else{
 	// read from tfiles

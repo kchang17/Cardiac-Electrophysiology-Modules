@@ -3,7 +3,7 @@ OS := $(shell uname -s)
 
 BINARIES = modules_tester debug serial_mapper parallel_mapper
 LIBRARIES = libcepmods_p.a libcepmods_s.a
-MODULES = act_mod.cxx repol_mod.cxx amap_mod.cxx rmap_mod.cxx apdmap_mod.cxx df_mod.cxx dfmap_mod.cxx freqmap_mod.cxx periodmap_mod.cxx dimap_mod.cxx di_mod.cxx
+MODULES = act_mod.cxx alt_mod.cxx repol_mod.cxx amap_mod.cxx rmap_mod.cxx apdmap_mod.cxx altmap_mod.cxx df_mod.cxx dfmap_mod.cxx freqmap_mod.cxx periodmap_mod.cxx dimap_mod.cxx di_mod.cxx
 UTILS = read_igbfile.cxx read_trace.cxx array_minmax.cxx read_tfile.cxx get_tfile_nodect.cxx tline_extract_time.cxx print_trace.cxx write_datfile.cxx get_igbfile_nodect.cxx mesgutils.cxx write_tfiles.cxx get_mpi_stats.cxx calc_parallel_nodes.cxx initialize_map.cxx
 CLASSES = VmFile.cxx
 SOURCES = $(MODULES) $(UTILS) $(CLASSES)
