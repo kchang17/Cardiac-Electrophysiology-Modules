@@ -1,9 +1,10 @@
 #include "cepmods.h"
 #include <fftw3.h>
+#include "mpi.h"
 
 // Requires fftw3
 // based on code by Hermenegild Arevalo in the lab of Natalia Tryanova
-void df_mod(float* tdata, float* vdata, int ndata, MapStruct* dfs)
+void df_mod(float* tdata, float* vdata, int ndata, MapStruct* dfs, int node, int nodect)
 {
     if(ndata <= 0){
 	all_abort("No data provided to df_mod.");
@@ -56,4 +57,11 @@ void df_mod(float* tdata, float* vdata, int ndata, MapStruct* dfs)
 
     free(in);
     free(out);
+
+#ifdef PARALLEL
+    int my_rank;
+
+    MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
+    cout << "Node " << node << "/" << nodect << " on rank " << my_rank << " had DF " << dfs->mapval << "\n";
+#endif
 }

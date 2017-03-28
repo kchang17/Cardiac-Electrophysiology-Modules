@@ -245,7 +245,7 @@ void repol_mod(float* tdata, float* vdata, int ndata, MapStruct* actdata, MapStr
 // Outputs:
 //   repoldata - repolarization time (1 float)
 
-void alt_mod(float* tdata, float* vdata, int ndata, MapStruct* apddata, MapStruct* altdata, int bcl, float fac_t);
+void alt_mod(float* tdata, float* vdata, int ndata, MapStruct* apddata, MapStruct* altdata, int bcl, int t, int dim_t);
 // Gets mean APD90 and alternans data for ONLY ONE NODE
 // Inputs:
 //   tdata - 1-D time data array
@@ -350,7 +350,7 @@ void apdmap_mod(int nodect, MapStruct* activations, MapStruct* repols, MapStruct
 // Outputs:
 //   apds - 1-D repolarization time array
 
-void altmap_mod(int timesteps, float* tdata, float* vdata, int nodect, MapStruct* apds, MapStruct* alts, int bcl, float fac_t);
+void altmap_mod(int timesteps, float* tdata, float* vdata, int nodect, MapStruct* apds, MapStruct* alts, int bcl, int t, int dim_t);
 // Runs alternans and APD90 calculations on an entire 2-D array of nodes/times
 // Inputs:
 //   timesteps - how many time steps are in the arrays
@@ -361,7 +361,7 @@ void altmap_mod(int timesteps, float* tdata, float* vdata, int nodect, MapStruct
 //   apds - 1-D activation time array
 //   alts - 1-D activation time array
 
-void df_mod(float* tdata, float* vdata, int ndata, MapStruct* dfs);
+void df_mod(float* tdata, float* vdata, int ndata, MapStruct* dfs, int node, int nodect);
 // Calculate the dominant frequency for one node
 // Inputs:
 //   tdata - 1-D array of times

@@ -1,6 +1,6 @@
 #include "cepmods.h"
 
-void altmap_mod(int nfiles, float* tdata, float* vdata, int nodect, MapStruct* apds, MapStruct* alts, int bcl, float fac_t)
+void altmap_mod(int nfiles, float* tdata, float* vdata, int nodect, MapStruct* apds, MapStruct* alts, int bcl, int t, int dim_t)
 {
 
 #ifdef DEBUG
@@ -11,8 +11,7 @@ void altmap_mod(int nfiles, float* tdata, float* vdata, int nodect, MapStruct* a
 #ifdef DEBUG
 //	cerr << "Passing node " << node << " to alt_mod(). " << endl;
 #endif
-    printf("node: %d\n",node);
-	alt_mod(tdata, &vdata[node*nfiles], nfiles, &apds[node], &alts[node], bcl, fac_t);
+	alt_mod(tdata, &vdata[node*nfiles], nfiles, &apds[node], &alts[node], bcl, t, dim_t);
 #ifdef DEBUG
 //	cerr << (*apds+node)->time << endl;
 #endif

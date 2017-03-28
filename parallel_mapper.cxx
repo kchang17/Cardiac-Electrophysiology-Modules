@@ -273,7 +273,7 @@ int main(int argc, char** argv)
     
     // Here starts the real processing
     // if using FFT or altmap, set timeblock to the total range
-    timesteps = ((end-start)/vmfile.get_fac_t()+1);
+    timesteps = ((end-start)*(vmfile.get_igb_timesteps()-1)/vmfile.get_dim_t()+1);
     if(altmap != NULL || freqmap != NULL || cbmap != NULL || fdrmap == true || hjmap == true || mvmap == true)
 	timeblock = timesteps;
 
@@ -281,7 +281,8 @@ int main(int argc, char** argv)
     
     vdata = new float [vmfile.get_my_block() * timeblock];
     tdata = new float [timeblock];
-
+    cout << "vdata length: " << vmfile.get_my_block()*timeblock << endl;
+    
     main_steps = timesteps / timeblock;
     int mainblock;
     mainblock = timeblock;
@@ -347,10 +348,10 @@ int main(int argc, char** argv)
     }
 
     for(int timestep = 0; timestep < total_steps; timestep++){
-	vmfile.get_steps(start+timestep*mainblock, start+timestep*mainblock+(timeblock-1)*vmfile.get_fac_t(), tdata, vdata);
+	vmfile.get_steps(start+timestep*mainblock, start+timestep*mainblock+(timeblock-1), tdata, vdata);
         if(hjmap == true){
-	    hfile.get_steps(start+timestep*mainblock, start+timestep*mainblock+(timeblock-1)*hfile.get_fac_t(), tdata, hdata);
-	    jfile.get_steps(start+timestep*mainblock, start+timestep*mainblock+(timeblock-1)*jfile.get_fac_t(), tdata, jdata);
+	    hfile.get_steps(start+timestep*mainblock, start+timestep*mainblock+(timeblock-1), tdata, hdata);
+	    jfile.get_steps(start+timestep*mainblock, start+timestep*mainblock+(timeblock-1), tdata, jdata);
         }
 	
 	// now process
@@ -359,7 +360,7 @@ int main(int argc, char** argv)
 	if(repols != NULL)
 	    rmap_mod(timeblock, tdata, vdata, my_block, activations, repols, repol_vm);
 	if(alts != NULL && apd90s != NULL)
-	    altmap_mod(timeblock, tdata, vdata, my_block, apd90s, alts, bcl, vmfile.get_fac_t());
+	    altmap_mod(timeblock, tdata, vdata, my_block, apd90s, alts, bcl, vmfile.get_igb_timesteps(), vmfile.get_dim_t());
 	if(apds != NULL)
 	    apdmap_mod(my_block, activations, repols, apds);
         if(triangs != NULL){
@@ -424,6 +425,13 @@ int main(int argc, char** argv)
     
     if(igbfile != NULL)
 	vmfile.close();
+
+    delete[] vdata;
+    delete[] tdata;
+    if(hjmap == true){
+    delete[] hdata;
+    delete[] jdata;
+    }
     
 #ifdef DEBUG
     cerr << "All done, exiting. " << endl;

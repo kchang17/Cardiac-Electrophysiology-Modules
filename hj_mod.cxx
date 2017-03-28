@@ -113,4 +113,9 @@ void hj_mod(float* tdata, float* vdata, float* hdata, float* jdata, int ndata, i
 #endif
     
     hjs->mapval = hjmean; // hj metric
+
+    delete[] hjdata;
+    delete[] tave;
+    delete[] vave;
+    delete[] dvdt;
 }

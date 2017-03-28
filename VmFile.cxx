@@ -145,6 +145,9 @@ void VmFile::open(char* filename, int tnum)
 	fac_t = 1;
 	voltagescale = 1;
 	tfile_currtime = tnum;
+    delete[] basename;
+    delete[] tline;
+    delete[] tfilename;
     }
     calc_parallel_nodes(nodect, &my_startnode, &my_block);
 }
@@ -168,12 +171,12 @@ void VmFile::get_steps(int start, int end, float* tdata, float* vdata)
     float buffer;
     int range;
 
-    range = (end-start)/fac_t+1;
+    range = (end-start)+1;
     
     if(mode == 0){
 	// read from IGB file
         for (int line = 0 ; line < range; line++) {
-	    set_time(start/fac_t+line);
+	    set_time(start+line);
             readitems = fread(&linebuffer[0], (sizeof(float)/sizeof(char)), my_block, igbfile);
 
 	    if(readitems != my_block){
@@ -191,11 +194,12 @@ void VmFile::get_steps(int start, int end, float* tdata, float* vdata)
 	    }
 
         }
-	set_time(end/fac_t+1);
+	set_time(end+1);
 
         for(int time = 0; time < range; time++){
-            tdata[time] = tzero*0.001 + start*0.001 + time*fac_t*0.001;
+            tdata[time] = tzero*0.001 + start*0.001 + time*0.001;
         }
+    delete[] linebuffer;
     }else{
 	// read from tfiles
 	char* filename = new char[BASEBUFF];
@@ -209,9 +213,9 @@ void VmFile::get_steps(int start, int end, float* tdata, float* vdata)
 	    }
 	
 	tfile_currtime = end+1;
+    delete[] filename;
     }
 
-    delete[] linebuffer;
 }
 
 void VmFile::get_next_step(float* time, float* vdata)
@@ -275,11 +279,17 @@ void VmFile::get_step(int time, float* vdata)
 	tfile_currtime = time;
     
     get_next_step(tdata, vdata);
+    delete tdata;
 }
 
 int VmFile::get_nodect()
 {
     return nodect;
+}
+
+int VmFile::get_dim_t()
+{
+    return dim_t;
 }
 
 double VmFile::get_fac_t()
@@ -302,7 +312,7 @@ int VmFile::blocksize(int start, int end)
     int return_size;
 
     if(mode == 0)
-        return_size = ((end-start)/fac_t+1)*my_block;
+        return_size = ((end-start)+1)*my_block;
     else
 	return_size = (end-start+1)*my_block;
     
